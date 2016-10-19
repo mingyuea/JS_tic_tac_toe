@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        table {
+            border-collapse:collapse;
+            
+        }
+        td {
+            height: 100px;
+            width: 100px;
+            text-align:center;
+            border: 1px solid black;
+        }
+        td:hover{background-color:bisque}
+    </style>
+    <body >
+        <h1>TIC TAC TOE Best Defending Iteration</h1>
+        <p>You are X's, the program will be O's. You go first, and the program will try its best to not let you win.</p>
+        <table id="Grid" onclick="selGrid(event)">
+            <tr>
+                <td id="2"> </td>
+                <td id="7"> </td>
+                <td id="6"> </td>
+            </tr>
+            <tr>
+                <td id="9"> </td>
+                <td id="5"> </td>
+                <td id="1"> </td>
+            </tr>
+            <tr>
+                <td id="4"> </td>
+                <td id="3"> </td>
+                <td id="8"> </td>
+            </tr>
+        </table>
+        <p id="errMsg"> </p>
+        
+        <script>
+            var playerGrids=[];
+            var compGrids=[];
+            var remainingGrids=["1","2","3","4","5","6","7","8","9"];
+            
+            function selGrid(event){
+                var gridCurrent=event.target;
+                
+                if((playerGrids.indexOf(gridCurrent.id)>=0)||(compGrids.indexOf(gridCurrent.id) >=0)){
+                    document.getElementById("errMsg").innerHTML="This one's already occupied, pick another grid";
+                }
+                else if(playerGrids.length<1){     //in the case that the player has only made the first move, do this
+                    document.getElementById(gridCurrent.id).innerHTML="X";
+                    playerGrids.push(gridCurrent.id);
+                    var indx=remainingGrids.indexOf(gridCurrent.id);
+                    remainingGrids.splice(indx,1);  //adds the grid to playerGrids, removes it from remainingGrids
+                    if(playerGrids.indexOf("5")<0){  //if the player hasnt take center grid, take it
+                        document.getElementById("5").innerHTML="O";
+                        var indxOfFive=remainingGrids.indexOf("5");
+                        remainingGrids.splice(indxOfFive,1);  //removes center grid from remaining grids, adds it to compGrids
+                        compGrids.push("5");
+                    }
+                    else{   //if center is taken, take one of the corners randomly
+                        var randSel=Math.ceil(Math.random()*4)*2;
+                        var randSelStr=randSel.toString();
+                        var randSelIndx=remainingGrids.indexOf(randSelStr);
+                        remainingGrids.splice(randSelIndx,1);
+                        compGrids.push(randSelStr);
+                        switch(randSel){
+                            case 2:
+                                document.getElementById("2").innerHTML="O";      
+                                break;
+                            case 4:
+                                document.getElementById("4").innerHTML="O";
+                                break;
+                            case 6:
+                                document.getElementById("6").innerHTML="O";
+                                break;
+                            case 8:
+                                document.getElementById("8").innerHTML="O";
+                        }
+                    }
+                }
+                else if(playerGrids.length==1){  //if player is making second move
+                    document.getElementById(gridCurrent.id).innerHTML="X";
+                    var indx=remainingGrids.indexOf(gridCurrent.id);  //removes it from remainingGrids, places an X on the space
+                    remainingGrids.splice(indx,1);
+                    for(i=0;i<remainingGrids.length;i++){ 
+                        if((Number(gridCurrent.id)+Number(playerGrids[0]))==(15-Number(remainingGrids[i]))){   //checks if there's a possible three in a row, and if there is blocks it
+                            document.getElementById(remainingGrids[i]).innerHTML="O";
+                            compGrids.push(remainingGrids[i]); //always push before splice
+                            remainingGrids.splice(i,1);
+                            var noBlock=false;
+                            break;
+                        }
+                        else{
+                            var noBlock=true;  //a placeholder boolean that tells function if there was a block or not
+                        }
+                    }
+                    if(noBlock){  //if there isnt a tic-tac-toe imminent, computer will randomly take one of the more strategic remaining corner grids, unless the player has two adjacent grids already
+                        if((Number(gridCurrent.id)+Number(playerGrids[0]))==10){  //if the player has chosen two adjacent corner grids, then computer will chose a edge
+                            remainEdge=[];
+                            for(j=0;j<remainingGrids.length;j++){
+                                if((Number(remainingGrids[j])%2)==1){
+                                    remainEdge.push(remainingGrids[j]);
+                                }
+                            }
+                            var randEdge=Math.floor(Math.random()*remainEdge.length);  //program randomly picks an edge
+                            document.getElementById(remainEdge[randEdge]).innerHTML="O";
+                            compGrids.push(remainEdge[randEdge]);
+                            remainingGrids.splice(remainingGrids.indexOf(remainEdge[randEdge]),1);
+                        }
+                        else{
+                            var remainCorners=[];
+                            for(i=0;i<remainingGrids.length;i++){  //collects all the remaining corner grids into one array
+                                if((Number(remainingGrids[i])%2)==0){
+                                    remainCorners.push(remainingGrids[i]);
+                                }
+                            }
+                            var randCorner=Math.floor(Math.random()*remainCorners.length);  //randomly picks a corner grid
+                            document.getElementById(remainCorners[randCorner]).innerHTML="O";
+                            compGrids.push(remainCorners[randCorner]);
+                            remainingGrids.splice(remainingGrids.indexOf(remainCorners[randCorner]),1);
+                        }
+                    }
+                    playerGrids.push(gridCurrent.id);
+                }
+                else if(playerGrids.length==2){  //third move
+                    document.getElementById(gridCurrent.id).innerHTML="X";
+                    var indx=remainingGrids.indexOf(gridCurrent.id);  //removes it from remainingGrids, places an X on the space
+                    remainingGrids.splice(indx,1);
+                    
+                    var gridNeeded=15-Number(compGrids[0])-Number(compGrids[1]);
+                    //console.log(gridNeeded);
+                    for(k=0;k<remainingGrids.length;k++){   //program checks if it can get 3 in a row
+                        if(remainingGrids[k]==gridNeeded){
+                            document.getElementById(remainingGrids[k]).innerHTML="O";
+                            compGrids.push(remainingGrids[k]);
+                            remainingGrids.splice(k,1);
+                            document.getElementById("errMsg").innerHTML="TIC TAC TOE, You lose! Refresh to play again.";
+                            document.getElementById("Grid").removeAttribute("onclick");
+                            var nextBest=false;
+                            return;
+                        }
+                        else{
+                            var nextBest=true;
+                        }
+                    }
+                    if(nextBest){  //checks if player has possible three in a row, and stops it
+                        var combo1=15-Number(gridCurrent.id)-playerGrids[0];
+                        var combo2=15-Number(gridCurrent.id)-playerGrids[1];
+                        for(l=0;l<remainingGrids.length;l++){
+                            if((remainingGrids[l]==combo1)||(remainingGrids[l]==combo2)){
+                                document.getElementById(remainingGrids[l]).innerHTML="O";
+                                compGrids.push(remainingGrids[l]);
+                                remainingGrids.splice(l,1);
+                                var ran3pick=false;
+                                break;
+                            }
+                            else{
+                               var ran3pick=true; 
+                            }
+                        }
+                    }
+                    if(ran3pick){  //randomly picks a third square
+                        var thirdPick=Math.floor(Math.random()*remainingGrids.length);
+                        document.getElementById(remainingGrids[thirdPick]).innerHTML="O";
+                        compGrids.push(remainingGrids[thirdPick]);
+                        remainingGrids.splice(thirdPick,1);
+                    }                    
+                    playerGrids.push(gridCurrent.id);
+                }
+                else if(playerGrids.length==3){  //move 4
+                    document.getElementById(gridCurrent.id).innerHTML="X";
+                    remainingGrids.splice(remainingGrids.indexOf(gridCurrent.id),1);
+                    
+                    for(m=0;m<compGrids.length;m++){  // program searches for possible 3 in a row in the two remaining grids
+                        var tmpCG=compGrids.slice(0,m).concat(compGrids.slice(m+1));
+                        console.log(tmpCG);
+                        for(n=0;n<tmpCG.length;n++){
+                            var compCombo=15-Number(compGrids[m])-Number(tmpCG[n]);
+                            if(compCombo==Number(remainingGrids[0])){
+                                document.getElementById(remainingGrids[0]).innerHTML="O";
+                                compGrids.push(remainingGrids[0]);
+                                remainingGrids.splice(0,1);
+                                var lastCheck=false;
+                                break;
+                            }
+                            else if((compCombo==remainingGrids[1])){
+                                document.getElementById(remainingGrids[1]).innerHTML="O";
+                                compGrids.push(remainingGrids[1]);
+                                remainingGrids.splice(1,1);
+                                var lastCheck=false;
+                                break;
+                            }
+                            else{
+                                var lastCheck=true;
+                            }
+                        }
+                    }
+                    if(lastCheck){
+                        for(p=0;p<playerGrids.length;p++){  //program checks if player can get three in a row and blocks it
+                            if((Number(gridCurrent.id)+Number(playerGrids[p]))==(15-Number(remainingGrids[0]))){
+                                document.getElementById(remainingGrids[0]).innerHTML="O";
+                                compGrids.push(remainingGrids[0]);
+                                remainingGrids.splice(0,1);
+                                var randLastPick=false;
+                                break;
+                            }
+                            else if((Number(gridCurrent.id)+Number(playerGrids[p]))==(15-Number(remainingGrids[1]))){
+                                document.getElementById(remainingGrids[1]).innerHTML="O";
+                                compGrids.push(remainingGrids[1]);
+                                remainingGrids.splice(1,1);
+                                var randLastPick=false;
+                                break;
+                            }
+                            else{
+                                var randLastPick=true;
+                            }
+                        }
+                        if(randLastPick){
+                            var lastPick=Math.floor(Math.random()*remainingGrids.length);
+                            document.getElementById(remainingGrids[lastPick]).innerHTML="O";
+                            compGrids.push(remainingGrids[lastPick]);
+                            remainingGrids.splice(lastPick,1);
+                        }
+                    }
+                    playerGrids.push(gridCurrent.id);
+                }
+                else{ //last move
+                    document.getElementById(gridCurrent.id).innerHTML="X";
+                    remainingGrids.splice(0,1);
+                    playerGrids.push(gridCurrent.id);
+                    document.getElementById("errMsg").innerHTML="Tie game, refresh to try again :)";
+                }
+                console.log(compGrids);
+                console.log(playerGrids);
+                console.log(remainingGrids);
+                //console.log(gridCurrent.id);
+            }
+        
+        </script>
+    </body>
+</html>
